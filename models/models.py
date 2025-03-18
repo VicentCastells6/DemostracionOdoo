@@ -1,21 +1,30 @@
-# -*- coding: utf-8 -*-
-
-from odoo import models, fields, api
-
+import random
+from odoo import models, fields, api # type: ignore
 
 class Demo(models.Model):
     _name = 'demo.demo'
-    _description = 'demo.demo'
+    _description = 'Demo'
 
-    name = fields.Char(string="Name")
-    value = fields.Integer(string="Value")
-    value2 = fields.Float(compute="_value_pc", store=True, string="Value Percentage")
+    name = fields.Char(string="Nombre")
+    value = fields.Integer(string="Valor")
+    value2 = fields.Float(compute='compute_field', string="Valor con IVA 21%", store=True)
     description = fields.Text(string="Description")
-    active = fields.Boolean(string="Active", default=True)
-    image = fields.Image('Image', max_width=128, max_height=128)
+    image = fields.Binary(string="Imagen")
+    tags = fields.Many2many('demo.tag', string="Características")
+    color = fields.Integer(string="Color")
 
-    @api.depends('value')
-    def _value_pc(self):
+    def compute_field(self):
         for record in self:
-            record.value2 = float(record.value) / 100
+            record.value2 = record.value * 1.21
+    
+class DemoTag(models.Model):
+    _name = 'demo.tag'
+    
+    name = fields.Char(string="Name", required=True)
+    color = fields.Integer(string="Color", default=lambda self: self._get_default_color())
 
+    @api.model
+    def create(self, vals):
+        if 'color' not in vals or vals.get('color') == 0:
+            vals['color'] = random.randint(1, 11)  # Colores de 1 a 11
+        return super(DemoTag, self).create(vals)

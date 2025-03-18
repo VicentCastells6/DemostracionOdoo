@@ -9,7 +9,7 @@
           <field name="name"/>
           <field name="value"/>
           <field name="value2"/>
-          <field name="active"/>
+          <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
         </list>
       </field>
     </record>
@@ -25,13 +25,14 @@
               <field name="value"/>
               <field name="value2"/>
               <field name="description"/>
-              <field name="active"/>
               <field name="image" widget="image"/>
+              <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
             </group>
           </sheet>
         </form>
       </field>
     </record>
+
 
     <record model="ir.ui.view" id="view_demo_kanban">
       <field name="name">demo.kanban</field>
@@ -41,19 +42,25 @@
           <field name="name"/>
           <field name="value"/>
           <field name="value2"/>
-          <field name="active"/>
           <field name="image"/>
+          <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
           <templates>
             <t t-name="kanban-box">
               <div class="oe_kanban_global_click">
                 <div class="oe_kanban_details">
-                  <t t-if="record.image.raw_value">
-                    <img t-att-src="kanban_image('demo.demo', 'image', record.id)" class="oe_kanban_image"/>
-                  </t>
-                  <strong><field name="name"/></strong>
-                  <div><field name="value"/></div>
-                  <div><field name="value2"/></div>
-                  <div><field name="active"/></div>
+                  <field name="image" widget="image" class="oe_avatar" nolabel="1" options="{'image_preview': 'image_128'}"/>
+                  <strong>
+                    <field name="name"/>
+                  </strong>
+                  <div>
+                    <field name="value"/>
+                  </div>
+                  <div>
+                    <field name="value2"/>
+                  </div>
+                  <div>
+                    <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                  </div>
                 </div>
               </div>
             </t>
@@ -61,15 +68,51 @@
         </kanban>
       </field>
     </record>
+ 
 
     <record model="ir.actions.act_window" id="action_demo">
-      <field name="name">demo</field>
+      <field name="name">Demo</field>
       <field name="res_model">demo.demo</field>
-      <field name="view_mode">list,form,kanban</field>
+      <field name="view_mode">list,form,kanban,graph</field>
+      <field name="view_id" ref="view_demo_graph"/>
+    </record>
+
+    <record model="ir.ui.view" id="view_demo_tag_list">
+      <field name="name">demo.tag.list</field>
+      <field name="model">demo.tag</field>
+      <field name="arch" type="xml">
+        <list>
+          <field name="name"/>
+          <field name="color"/>
+        </list>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_demo_tag_form">
+      <field name="name">demo.tag.form</field>
+      <field name="model">demo.tag</field>
+      <field name="arch" type="xml">
+        <form>
+          <sheet>
+            <group>
+              <field name="name"/>
+              <field name="color"/>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <!-- Definir la acción para las características -->
+    <record model="ir.actions.act_window" id="action_demo_tag">
+      <field name="name">Características</field>
+      <field name="res_model">demo.tag</field>
+      <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_demo_root" name="Demo"/>
     <menuitem id="menu_demo" name="Demo" parent="menu_demo_root" action="action_demo"/>
+    <menuitem id="menu_demo_tag" name="Características" parent="menu_demo_root" action="action_demo_tag"/>
 
   </data>
 </odoo>
