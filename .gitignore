@@ -1,0 +1,59 @@
+# Odoo generated files
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.bak
+*.swp
+*.swo
+
+# Compiled Python files
+*.pyc
+*.pyo
+
+# Odoo database files
+*.db
+
+# Logs
+*.log
+/odoo.log
+
+# Directories for custom Odoo modules
+addons/*/__pycache__/
+addons/*/static/
+addons/*/views/
+
+# Odoo session and temporary files
+*.pid
+*.sock
+*.tmp
+*.swp
+
+# Odoo data directories
+*.sqlite
+*.db
+*.json
+
+# Docker-related files
+docker-compose.override.yml
+*.env
+
+# Virtual environments (if any)
+venv/
+.env/
+
+# Other files that shouldn't be tracked
+*.bak
+*.tmp
+.DS_Store
+
+# Odoo configuration file (optional, if it's not being tracked)
+odoo.conf
+
+# Odoo assets (static files and cache)
+*.css.map
+*.js.map
+*.scss
+*.css

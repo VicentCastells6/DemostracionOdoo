@@ -1,0 +1,45 @@
+<odoo>
+  <data>
+
+    <record model="ir.ui.view" id="view_prueba_list">
+      <field name="name">prueba.list</field>
+      <field name="model">prueba.prueba</field>
+      <field name="arch" type="xml">
+        <list>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+          <field name="active"/>
+        </list>
+      </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_prueba_form">
+      <field name="name">prueba.form</field>
+      <field name="model">prueba.prueba</field>
+      <field name="arch" type="xml">
+        <form>
+          <sheet>
+            <group>
+              <field name="name"/>
+              <field name="value"/>
+              <field name="value2"/>
+              <field name="description"/>
+              <field name="active"/>
+            </group>
+          </sheet>
+        </form>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_prueba">
+      <field name="name">Prueba</field>
+      <field name="res_model">prueba.prueba</field>
+      <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_prueba_root" name="Prueba"/>
+    <menuitem id="menu_prueba" name="Prueba" parent="menu_prueba_root" action="action_prueba"/>
+
+  </data>
+</odoo>
