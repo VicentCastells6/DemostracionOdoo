@@ -2,8 +2,8 @@
 {
     'name': 'DemostracionOdoo',
     'version': '1.0',
-    'summary': 'Módulo de demo',
-    'description': 'Modulo de demo y pruebas de practicas de Odoo',
+    'summary': 'Módulo de préstamo de equipos',
+    'description': 'Este módulo permitirá a una empresa gestionar el préstamo de equipos (como portátiles, teléfonos, herramientas, etc.) a sus empleados.',
     'author': 'Vicent Castells',
     'website': "https://github.com/VicentCastells6",
 
@@ -20,6 +20,8 @@
         'security/ir.model.access.csv',
         'views/views.xml',
     ],
+   
+
     # only loaded in demonstration mode
     'demo': [
         'demo/demo.xml',
