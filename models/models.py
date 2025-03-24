@@ -22,6 +22,25 @@ class Equipos(models.Model):
     image = fields.Binary(string="Imagen")
     tags = fields.Many2many('equipo.tag', string="Características")
     color = fields.Integer(string="Color")
+    
+    @api.model
+    def create(self, vals):
+        # Validación para asegurarse de que no se repita el serialNumber
+        if 'serialNumber' in vals:
+            existing_equipment = self.search([('serialNumber', '=', vals['serialNumber'])], limit=1)
+            if existing_equipment:
+                raise ValidationError("Ya existe un equipo con ese número de serie.")
+        
+        return super(Equipos, self).create(vals)
+
+    def write(self, vals):
+        # Validación para asegurarse de que no se repita el serialNumber al actualizar
+        if 'serialNumber' in vals:
+            existing_equipment = self.search([('serialNumber', '=', vals['serialNumber'])], limit=1)
+            if existing_equipment and existing_equipment.id != self.id:
+                raise ValidationError("Ya existe un equipo con ese número de serie.")
+        
+        return super(Equipos, self).write(vals)
 
 class EquipoTag(models.Model):
     _name = 'equipo.tag'
@@ -61,17 +80,16 @@ class Prestamos(models.Model):
     @api.depends('loanDate')
     def _compute_returnDate(self):
         for loan in self:
-            if loan.loanDate and not loan.returnDate:
+            if loan.loanDate:
                 loan.returnDate = loan.loanDate + timedelta(days=7)
     
     @api.depends('loanDate', 'returnDate')
     def _compute_state(self):
         for loan in self:
-            if loan.returnDate:
-                if loan.returnDate < fields.Date.today():
-                    loan.state = 'retrasado'
-                else:
-                    loan.state = 'devuelto'
+            if loan.returnDate and loan.returnDate < fields.Date.today():
+                loan.state = 'retrasado'
+            elif loan.returnDate and loan.returnDate >= fields.Date.today():
+                loan.state = 'devuelto'
             else:
                 loan.state = 'prestado'
             self._update_equipment_state(loan)
@@ -81,35 +99,36 @@ class Prestamos(models.Model):
             loan.equipment_id.state = 'disponible'
         else:
             loan.equipment_id.state = 'prestado'
+
     @api.model
     def create(self, vals):
         loan = super(Prestamos, self).create(vals)
         self._update_equipment_state(loan)
         return loan
-    
+
     def write(self, vals):
         res = super(Prestamos, self).write(vals)
         for loan in self:
             self._update_equipment_state(loan)
         return res
-    # TODO la condicion de retrasado no funciona bien, hay que solucionarla
+
     def action_devolver(self):
         """
         Marca el préstamo como devuelto o retrasado y actualiza el estado del equipo.
         """
-        today = fields.Date.today()  # Obtener la fecha actual
+        today = fields.Date.today()  
         for loan in self:
+            # Verificar si la fecha de devolución es anterior a la fecha actual
             if loan.returnDate and loan.returnDate < today:
-                loan.state = 'retrasado'  # Si la fecha de devolución ha pasado
+                loan.state = 'retrasado' 
             else:
-                loan.state = 'devuelto'  # Si la fecha de devolución no ha pasado
+                loan.state = 'devuelto' 
             
             # Actualizar la fecha de devolución a la fecha actual
             loan.returnDate = today
             
             # Actualizar el estado del equipo asociado
             self._update_equipment_state(loan)
-            
     
     def action_cancelar_devolucion(self):
         """
@@ -118,11 +137,8 @@ class Prestamos(models.Model):
         """
         for loan in self:
             if loan.state in ['devuelto', 'retrasado']:
-                
                 loan.state = 'prestado'
-
                 loan.returnDate = False
-                
                 if loan.equipment_id:
                     loan.equipment_id.state = 'prestado'
             
@@ -138,8 +154,3 @@ class Prestamos(models.Model):
                 employee = loan.employee_id
                 employee.message_post(body="El préstamo del equipo %s está retrasado" % loan.equipment_id.name)
 
-    @api.constrains('loanDate', 'returnDate')
-    def _check_dates(self):
-        for loan in self:
-            if loan.returnDate and loan.returnDate < loan.loanDate:
-                raise ValidationError("La fecha de devolución no puede ser anterior a la fecha de préstamo.")

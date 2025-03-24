@@ -18,9 +18,9 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
-        'views/views.xml',
+        'views/equipos.xml',
+        'views/prestamos.xml',
     ],
-   
 
     # only loaded in demonstration mode
     'demo': [
@@ -28,7 +28,7 @@
     ],
     'installable': True,
     'application': True,
-    
+    'license': 'LGPL-3', 
     
     
     # Icon
