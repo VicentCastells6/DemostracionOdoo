@@ -16,10 +16,10 @@
     'depends': ['base'],
 
     # always loaded
-    'data': [
-        'security/ir.model.access.csv',
-        'views/equipos.xml',
-        'views/prestamos.xml',
+    "data": [
+        "security/ir.model.access.csv",
+        "views/equipos.xml",
+        "views/prestamos.xml"
     ],
 
     # only loaded in demonstration mode

@@ -1,6 +1,6 @@
-from odoo import models, fields, api
 from datetime import timedelta
-from models.equipos import Equipos
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 class Prestamos(models.Model):
     _name = 'equipo.prestamo'
@@ -13,10 +13,11 @@ class Prestamos(models.Model):
     loanDate = fields.Date(string="Fecha de préstamo", required=True)
     returnDate = fields.Date(string="Fecha de devolución", compute='_compute_returnDate', store=True)
     state = fields.Selection([
+        ('disponible', 'Disponible'),
         ('prestado', 'Prestado'),
         ('devuelto', 'Devuelto'),
         ('retrasado', 'Retrasado')
-    ], string="Estado", default='prestado')
+    ], string="Estado", default='disponible')
     description = fields.Text(string="Descripción")
     image = fields.Binary(string="Imagen", related='equipment_id.image', readonly=True)
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
@@ -39,51 +40,65 @@ class Prestamos(models.Model):
                 loan.state = 'retrasado'
             elif loan.returnDate and loan.returnDate >= fields.Date.today() and loan.state == 'prestado':
                 loan.state = 'prestado'
-            self._update_equipment_state(loan)
+            elif not loan.returnDate and not loan.loanDate:
+                loan.state = 'disponible'
+        self._update_equipment_state()  # Se llama la función sin parámetros
 
-    def _update_equipment_state(self, loan):
-        if loan.state in ['devuelto', 'retrasado']:
-            loan.equipment_id.state = 'disponible'
-        else:
-            loan.equipment_id.state = 'prestado'
+    def _update_equipment_state(self):
+        for loan in self:
+            if loan.state in ['devuelto', 'retrasado']:
+                loan.equipment_id.state = 'disponible'
+            else:
+                loan.equipment_id.state = 'prestado'
 
     @api.model
     def create(self, vals):
+        equipment = self.env['equipo.equipo'].browse(vals['equipment_id'])
+        if equipment.state != 'disponible':
+            raise ValidationError("El equipo no está disponible para ser reservado.")
+        
         loan = super(Prestamos, self).create(vals)
-        self._update_equipment_state(loan)
+        loan.state = 'prestado'
+        loan._update_equipment_state()
         return loan
 
     def write(self, vals):
-        res = super(Prestamos, self).write(vals)
         for loan in self:
-            self._update_equipment_state(loan)
+            if 'equipment_id' in vals:
+                equipment = self.env['equipo.equipo'].browse(vals['equipment_id'])
+                if equipment.exists() and equipment.state != 'disponible':
+                    raise ValidationError("El equipo no está disponible para ser reservado.")
+            
+            if 'state' in vals and vals['state'] == 'disponible':
+                vals['state'] = 'prestado'
+        
+        res = super(Prestamos, self).write(vals)
+        self._update_equipment_state()
         return res
 
     def action_devolver(self):
         today = fields.Date.today()  
         for loan in self:
             loan.state = 'devuelto'
-            if not loan.longTerm:
-                if loan.returnDate and loan.returnDate < today:
-                    loan.state = 'retrasado'
-            self._update_equipment_state(loan)
+            if not loan.longTerm and loan.returnDate and loan.returnDate < today:
+                loan.state = 'retrasado'
+            loan._update_equipment_state()
     
     def action_cancelar_devolucion(self):
         for loan in self:
             if loan.state in ['devuelto', 'retrasado']:
                 loan.state = 'prestado'
                 loan.returnDate = False
-                if loan.equipment_id:
-                    loan.equipment_id.state = 'prestado'
+                loan.equipment_id.state = 'prestado'
             
     @api.model
     def notification(self):
+        today = fields.Date.today()
         loans = self.search([('state', '=', 'prestado')])
         for loan in loans:
-            if not loan.longTerm and loan.returnDate and loan.returnDate - timedelta(days=2) <= fields.Date.today():
-                employee = loan.employee_id
-                employee.message_post(body="El préstamo del equipo %s está próximo a vencer" % loan.equipment_id.name)
-            if not loan.longTerm and loan.returnDate and loan.returnDate < fields.Date.today():
-                loan.state = 'retrasado'
-                employee = loan.employee_id
-                employee.message_post(body="El préstamo del equipo %s está retrasado" % loan.equipment_id.name)
+            if not loan.longTerm and loan.returnDate:
+                if loan.returnDate - timedelta(days=2) <= today:
+                    loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está próximo a vencer.")
+                if loan.returnDate < today:
+                    loan.state = 'retrasado'
+                    loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está retrasado.")
