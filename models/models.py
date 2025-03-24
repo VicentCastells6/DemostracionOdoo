@@ -69,10 +69,11 @@ class Prestamos(models.Model):
     loanDate = fields.Date(string="Fecha de préstamo", required=True)
     returnDate = fields.Date(string="Fecha de devolución", compute='_compute_returnDate', store=True)
     state = fields.Selection([
+        ('disponible', 'Disponible'),
         ('prestado', 'Prestado'),
         ('devuelto', 'Devuelto'),
         ('retrasado', 'Retrasado')
-    ], string="Estado", default='prestado')
+    ], string="Estado", default='disponible')
     description = fields.Text(string="Descripción")
     image = fields.Binary(string="Imagen", related='equipment_id.image', readonly=True)
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
@@ -95,6 +96,8 @@ class Prestamos(models.Model):
                 loan.state = 'retrasado'
             elif loan.returnDate and loan.returnDate >= fields.Date.today() and loan.state == 'prestado':
                 loan.state = 'prestado'
+            elif not loan.returnDate and not loan.loanDate:
+                loan.state = 'disponible'
             self._update_equipment_state(loan)
 
     def _update_equipment_state(self, loan):
@@ -105,14 +108,24 @@ class Prestamos(models.Model):
 
     @api.model
     def create(self, vals):
+        equipment = self.env['equipo.equipo'].browse(vals['equipment_id'])
+        if equipment.state != 'disponible':
+            raise ValidationError("El equipo no está disponible para ser reservado.")
         loan = super(Prestamos, self).create(vals)
-        self._update_equipment_state(loan)
+        loan.state = 'prestado'  # Cambiar el estado a 'prestado' después de crear el préstamo
+        loan._update_equipment_state(loan)
         return loan
 
     def write(self, vals):
         res = super(Prestamos, self).write(vals)
         for loan in self:
-            self._update_equipment_state(loan)
+            if 'equipment_id' in vals:
+                equipment = self.env['equipo.equipo'].browse(vals['equipment_id'])
+                if equipment.state != 'disponible':
+                    raise ValidationError("El equipo no está disponible para ser reservado.")
+            if loan.state == 'disponible':
+                loan.state = 'prestado'  # Cambiar el estado a 'prestado' después de actualizar el préstamo
+            loan._update_equipment_state(loan)
         return res
 
     def action_devolver(self):
@@ -125,7 +138,7 @@ class Prestamos(models.Model):
             if not loan.longTerm:
                 if loan.returnDate and loan.returnDate < today:
                     loan.state = 'retrasado'
-            self._update_equipment_state(loan)
+            loan._update_equipment_state(loan)
     
     def action_cancelar_devolucion(self):
         """

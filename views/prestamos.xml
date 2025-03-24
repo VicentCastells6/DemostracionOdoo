@@ -19,7 +19,7 @@
           <field name="image"/>
           <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
           <button name="action_devolver" type="object" string="Devolver" class="oe_highlight btn btn-primary" invisible="state != 'prestado'"/>
-          <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución" class="btn btn-danger" invisible="state == 'prestado'"/> 
+          <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución" class="btn btn-danger" invisible="state == 'prestado' or state == 'disponible'"/> 
         </list>
       </field>
     </record>
@@ -35,7 +35,7 @@
             <div>
             <!-- Botones de devolver y de cancelar devolución -->
               <button name="action_devolver" type="object" string="Devolver" class="oe_highlight btn btn-primary" invisible="state != 'prestado'"/>
-              <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución" class="btn btn-danger" invisible="state == 'prestado'"/>
+              <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución" class="btn btn-danger" invisible="state == 'prestado' or state == 'disponible'"/>
             </div>
             <div style="margin-left: auto;">
               <field name="state" widget="statusbar" statusbar_visible="prestado,devuelto,retrasado" class="w-100"/>
