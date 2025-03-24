@@ -65,6 +65,7 @@ class Prestamos(models.Model):
     name = fields.Char(string="Nombre")
     employee_id = fields.Many2one('res.partner', string="Empleado", required=True)
     equipment_id = fields.Many2one('equipo.equipo', string="Equipo", required=True)
+    longTerm = fields.Boolean(string="Préstamo a largo plazo", default=False)
     loanDate = fields.Date(string="Fecha de préstamo", required=True)
     returnDate = fields.Date(string="Fecha de devolución", compute='_compute_returnDate', store=True)
     state = fields.Selection([
@@ -77,20 +78,22 @@ class Prestamos(models.Model):
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
     color = fields.Integer(string="Color", related='equipment_id.color', readonly=True)
 
-    @api.depends('loanDate')
+    @api.depends('loanDate', 'longTerm')
     def _compute_returnDate(self):
         for loan in self:
-            if loan.loanDate:
+            if loan.loanDate and not loan.longTerm:
                 loan.returnDate = loan.loanDate + timedelta(days=7)
+            else:
+                loan.returnDate = False
     
-    @api.depends('loanDate', 'returnDate')
+    @api.depends('loanDate', 'returnDate', 'longTerm')
     def _compute_state(self):
         for loan in self:
-            if loan.returnDate and loan.returnDate < fields.Date.today():
+            if loan.longTerm:
+                loan.state = 'prestado'
+            elif loan.returnDate and loan.returnDate < fields.Date.today() and loan.state == 'prestado':
                 loan.state = 'retrasado'
-            elif loan.returnDate and loan.returnDate >= fields.Date.today():
-                loan.state = 'devuelto'
-            else:
+            elif loan.returnDate and loan.returnDate >= fields.Date.today() and loan.state == 'prestado':
                 loan.state = 'prestado'
             self._update_equipment_state(loan)
 
@@ -114,20 +117,14 @@ class Prestamos(models.Model):
 
     def action_devolver(self):
         """
-        Marca el préstamo como devuelto o retrasado y actualiza el estado del equipo.
+        Marca el préstamo como devuelto y actualiza el estado del equipo.
         """
         today = fields.Date.today()  
         for loan in self:
-            # Verificar si la fecha de devolución es anterior a la fecha actual
-            if loan.returnDate and loan.returnDate < today:
-                loan.state = 'retrasado' 
-            else:
-                loan.state = 'devuelto' 
-            
-            # Actualizar la fecha de devolución a la fecha actual
-            loan.returnDate = today
-            
-            # Actualizar el estado del equipo asociado
+            loan.state = 'devuelto'
+            if not loan.longTerm:
+                if loan.returnDate and loan.returnDate < today:
+                    loan.state = 'retrasado'
             self._update_equipment_state(loan)
     
     def action_cancelar_devolucion(self):
@@ -146,10 +143,10 @@ class Prestamos(models.Model):
     def notification(self):
         loans = self.search([('state', '=', 'prestado')])
         for loan in loans:
-            if loan.returnDate and loan.returnDate - timedelta(days=2) <= fields.Date.today():
+            if not loan.longTerm and loan.returnDate and loan.returnDate - timedelta(days=2) <= fields.Date.today():
                 employee = loan.employee_id
                 employee.message_post(body="El préstamo del equipo %s está próximo a vencer" % loan.equipment_id.name)
-            if loan.returnDate and loan.returnDate < fields.Date.today():
+            if not loan.longTerm and loan.returnDate and loan.returnDate < fields.Date.today():
                 loan.state = 'retrasado'
                 employee = loan.employee_id
                 employee.message_post(body="El préstamo del equipo %s está retrasado" % loan.equipment_id.name)

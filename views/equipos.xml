@@ -3,7 +3,6 @@
     <!-- Definición del menú raíz -->
     <menuitem id="menu_demo_root" name="Demostración"/>
 
-
     <record model="ir.ui.view" id="view_equipo_list">
       <field name="name">equipo.list</field>
       <field name="model">equipo.equipo</field>
@@ -74,6 +73,8 @@
                   </div>
                   <div>
                     <field name="employee_id"/>
+                  </div>
+                  <div>
                   </div>
                   <div>
                     <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>

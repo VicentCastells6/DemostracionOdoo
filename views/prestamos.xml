@@ -51,6 +51,7 @@
               <field name="employee_id"/>
               <field name="equipment_id"/>
               <field name="loanDate"/>
+              <field name="longTerm"/>
               <field name="returnDate"/>
               <field name="state"/>
               <field name="description"/>
