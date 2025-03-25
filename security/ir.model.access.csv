@@ -1,4 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_equipo_equipo,equipo.equipo,model_equipo_equipo,base.group_user,1,1,1,1
-access_equipo_tag_user,equipo.tag user,model_equipo_tag,,1,1,1,1
+access_equipo_tag_user,equipo.tag_user,model_equipo_tag,,1,1,1,1
 access_equipo_prestamo,equipo.prestamo,model_equipo_prestamo,base.group_user,1,1,1,1

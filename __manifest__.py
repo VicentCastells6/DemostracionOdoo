@@ -7,31 +7,23 @@
     'author': 'Vicent Castells',
     'website': "https://github.com/VicentCastells6",
 
-    # Categories can be used to filter modules in modules listing
-    # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
-    # for the full list
     'category': 'Customizations',
-
-    # any module necessary for this one to work correctly
     'depends': ['base'],
 
-    # always loaded
     "data": [
         "security/ir.model.access.csv",
         "views/equipos.xml",
-        "views/prestamos.xml"
+        "views/prestamos.xml",
     ],
 
-    # only loaded in demonstration mode
+
     'demo': [
         'demo/demo.xml',
     ],
+
     'installable': True,
     'application': True,
-    'license': 'LGPL-3', 
-    
-    
-    # Icon
+    'license': 'LGPL-3',
+
     'icon': '/Demostracion/static/description/icon.png',
 }
-

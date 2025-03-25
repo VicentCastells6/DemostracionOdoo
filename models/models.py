@@ -8,7 +8,7 @@ class Equipos(models.Model):
     _description = 'Equipos de la empresa'
 
     name = fields.Char(string="Nombre")
-    serialNumber = fields.Char(string="Nº de serie", required=True, index=True, copy=False, unique=True)
+    serialNumber = fields.Char(string="Nº de serie", required=True, index=True, copy=False)
     purchaseDate = fields.Date(string="Fecha de compra")
     warranty = fields.Binary(string="Garantía")
     state = fields.Selection([

@@ -23,6 +23,7 @@ class Prestamos(models.Model):
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
     color = fields.Integer(string="Color", related='equipment_id.color', readonly=True)
 
+
     @api.depends('loanDate', 'longTerm')
     def _compute_returnDate(self):
         for loan in self:
@@ -42,7 +43,12 @@ class Prestamos(models.Model):
                 loan.state = 'prestado'
             elif not loan.returnDate and not loan.loanDate:
                 loan.state = 'disponible'
-        self._update_equipment_state()  # Se llama la función sin parámetros
+        self._update_equipment_state()
+
+    @api.depends('state')
+    def compute_visibility(self):
+        for loan in self:
+            loan.visibility = loan.state not in ['prestado', 'disponible']
 
     def _update_equipment_state(self):
         for loan in self:
@@ -82,10 +88,17 @@ class Prestamos(models.Model):
             loan.state = 'devuelto'
             if not loan.longTerm and loan.returnDate and loan.returnDate < today:
                 loan.state = 'retrasado'
+            if loan.state == 'devuelto':
+                raise ValidationError("El equipo ya ha sido devuelto.")
             loan._update_equipment_state()
     
     def action_cancelar_devolucion(self):
         for loan in self:
+            # Verificar si el equipo está prestado en otro préstamo
+            other_loans = self.search([('equipment_id', '=', loan.equipment_id.id), ('state', '=', 'prestado')])
+            if other_loans:
+                raise ValidationError("El equipo está actualmente prestado en otro préstamo y no se puede cancelar la devolución.")
+            
             if loan.state in ['devuelto', 'retrasado']:
                 loan.state = 'prestado'
                 loan.returnDate = False
