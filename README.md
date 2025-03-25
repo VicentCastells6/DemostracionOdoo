@@ -1,20 +1,25 @@
-# Módulo de Demostración, prestamos de equipos internos para Odoo
+# 🎓 Módulo de Demostración, préstamos de equipos en Odoo 
 
 Este módulo de Odoo está diseñado para **ser una prueba de programación** he añadido diversas funcionalidades para ir probando todo lo que odoo permite. Permite explorar cómo se pueden implementar ciertas características en Odoo, proporcionando ejemplos básicos y fáciles de entender para su uso.
 
-## Características
+## 💻Características💻
 
 - **Demostración de Modelos**: El módulo crea modelos de préstamo y equipo para mostrar cómo se pueden manejar datos en Odoo.
 - **Vistas Personalizadas**: Incluye vistas como formularios, listas, kanban y graph para ilustrar la personalización de la interfaz.
 - **Pruebas de Funcionalidad**: Implementación de algunas pruebas básicas para verificar que el sistema se comporta como se espera.
 - **Fáciles de Modificar**: Todo el código está documentado para que puedas modificarlo fácilmente según tus necesidades.
-
+  
+## ❗ Problemas encontrados ❗
+- Ocultar los botones siguendo una condición de estado EN LA VISTA LIST
+- Añadir el chat de comunicacion al lateral de los form
+- Generar notificaciones para avisar usuario de su próxima finalizacion de préstamo
+  
 ## Requisitos
 
 - **Odoo 18**: Este módulo está diseñado para funcionar con Odoo 18.
 - **Acceso a un Servidor de Odoo**: Necesitarás un servidor de Odoo en funcionamiento para instalar y probar el módulo.
   
-## Instalación
+## 🧰 Instalación
 
 Sigue estos pasos para instalar el módulo en tu instancia de Odoo:
 
@@ -31,7 +36,7 @@ Actualizar la Lista de Módulos en Odoo: Entra en Odoo y ve a Apps > Update Apps
 
 Instalar el Módulo: Una vez que la lista de aplicaciones esté actualizada, busca el módulo "Modulo de Demostración y Pruebas" en la interfaz de Odoo y haz clic en Instalar.
 
-## Uso
+## 🖱️ Uso
 Este módulo está planteado para ser una versión simple de prestamos de equipos internos, como teléfonos de empresa, portátiles, etc... Algunas de las funcionalidades de prueba que puedes probar son:
 
 - Formularios: Crea y modifica tanto equipos como prestamos a través de formularios personalizados.
@@ -41,15 +46,16 @@ Este módulo está planteado para ser una versión simple de prestamos de equipo
 - Kanban: Observa cómo los datos pueden organizarse en una vista de kanban.
 
 
-# Estructura del Módulo
+# 🏗️ Estructura del Módulo
 Este módulo contiene los siguientes componentes principales:
 
-## Modelos:
+## 💠 Modelos: 
 
 equipo.equipo = modelo de registro de equipos y sus características
 equipo.prestamo = modelo de creacrión de prestamos y la fecha de devolución
 equipo.tags = modelo de utilidad **creado manualmente** para gestionar las caracteristicas por etiquetas y la gestión de colores
-## Vistas:
+
+## 📺 Vistas:
 
 - Formularios: Para agregar y editar datos.
 
@@ -61,7 +67,7 @@ equipo.tags = modelo de utilidad **creado manualmente** para gestionar las carac
 
 - Datos: Incluye datos de ejemplo que se cargan al instalar el módulo.
 
-## Licencia
+## 🗞️ Licencia
 Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
 
 
