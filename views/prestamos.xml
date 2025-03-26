@@ -78,11 +78,35 @@
       </field>
     </record>
     
+    <!-- Vista Search-->
+     <record id="view_prestamo_search" model="ir.ui.view">
+      <field name="name">equipo.prestamo.search</field>
+      <field name="model">equipo.prestamo</field>
+      <field name="arch" type="xml">
+        <search string="Buscar Préstamos">
+          <field name="name" string="Nombre"/>
+          <field name="employee_id" string="Empleado"/>
+          <field name="equipment_id" string="Equipo"/>
+          <field name="loanDate" string="Fecha de Préstamo"/>
+          <field name="returnDate" string="Fecha de Devolución"/>
+          <!-- Filtros rápidos por estado -->
+          <filter string="Prestados" name="filter_prestados" domain="[('state','=','prestado')]"/>
+          <filter string="Devueltos" name="filter_devueltos" domain="[('state','=','devuelto')]"/>
+          <filter string="Retrasados" name="filter_retrasados" domain="[('state','=','retrasado')]"/>
+          <filter string="Equipos" name="group_by_equipos" context="{'group_by': 'equipment_id'}"/>
+          <filter string="Estado" name="group_by_state" context="{'group_by': 'state'}"/>
+          <filter string="Largo Plazo" name="group_by_LongTerm" context="{'group_by': 'longTerm'}"/>
+
+        </search>
+      </field>
+    </record>
+
     <!-- Acción para la vista de préstamo -->
     <record model="ir.actions.act_window" id="action_prestamo">
       <field name="name">Préstamos</field>
       <field name="res_model">equipo.prestamo</field>
       <field name="view_id" ref="view_prestamo_list"/>
+      <field name="search_view_id" ref="view_prestamo_search"/>
       <field name="view_mode">list,form,graph</field>
     </record>
 
