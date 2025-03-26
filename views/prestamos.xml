@@ -78,13 +78,12 @@
       </field>
     </record>
     
-
     <!-- Acción para la vista de préstamo -->
     <record model="ir.actions.act_window" id="action_prestamo">
       <field name="name">Préstamos</field>
       <field name="res_model">equipo.prestamo</field>
       <field name="view_id" ref="view_prestamo_list"/>
-      <field name="view_mode">list,form,graph</field> 
+      <field name="view_mode">list,form,graph</field>
     </record>
 
     <!-- Menú para los préstamos -->

@@ -1,0 +1,91 @@
+<odoo>
+    <data>
+        <template id="report_prestamo_equipos">
+            <t t-call="web.external_layout">
+                <main>
+                    <style type="text/css">
+            /* Encabezado del reporte */
+            .report-header {
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            .report-title {
+              font-size: 24px;
+              font-weight: bold;
+              color: #2F4F4F;
+              margin-top: 10px;
+            }
+            /* Estilos para la tabla */
+            .report-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+            .report-table thead th {
+              background-color: #f2f2f2;
+              padding: 10px;
+              border: 1px solid #ddd;
+              text-align: center;
+              font-weight: bold;
+            }
+            .report-table tbody td {
+              padding: 10px;
+              border: 1px solid #ddd;
+              text-align: center;
+            }
+            .report-table tbody tr:nth-child(even) {
+              background-color: #f9f9f9;
+            }
+                    </style>
+                    <!-- Encabezado con logo y título -->
+                    <div class="report-header">
+                        <!-- Puedes ajustar el id o ruta para el logo de tu compañía -->
+                        <img src="/web/image?model=res.company&amp;id=1&amp;field=logo" alt="Logo" style="max-height: 80px;"/>
+                        <div class="report-title">Reporte de Préstamo de Equipos</div>
+                    </div>
+                    <!-- Contenido del reporte -->
+                    <div class="page">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Equipo</th>
+                                    <th>Fecha de Préstamo</th>
+                                    <th>Fecha de Devolución</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="docs" t-as="doc">
+                                    <tr>
+                                        <td>
+                                            <t t-esc="doc.id"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="doc.equipment_id.name"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="doc.loanDate"/>
+                                        </td>
+                                        <td>
+                                            <t t-esc="doc.returnDate"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </main>
+            </t>
+        </template>
+
+        <!-- Acción del informe para el modelo equipo.prestamo -->
+        <record id="action_report_prestamo_equipos" model="ir.actions.report">
+            <field name="name">Reporte de Préstamo de Equipos</field>
+            <field name="model">equipo.prestamo</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">Demostracion.report_prestamo_equipos</field>
+            <field name="binding_model_id" ref="Demostracion.model_equipo_prestamo"/>
+            <field name="binding_type">report</field>
+        </record>
+    </data>
+</odoo>
