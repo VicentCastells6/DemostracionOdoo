@@ -22,6 +22,8 @@ class Prestamos(models.Model):
     image = fields.Binary(string="Imagen", related='equipment_id.image', readonly=True)
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
     color = fields.Integer(string="Color", related='equipment_id.color', readonly=True)
+    picking_id = fields.Many2one('stock.picking', string="Movimiento de Inventario")
+    
         
     
     @api.depends('loanDate', 'longTerm')

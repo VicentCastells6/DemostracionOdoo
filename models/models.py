@@ -22,6 +22,8 @@ class Equipos(models.Model):
     image = fields.Binary(string="Imagen")
     tags = fields.Many2many('equipo.tag', string="Características")
     color = fields.Integer(string="Color")
+    picking_id = fields.Many2one('stock.picking', string="Movimiento de Inventario")
+
     
     @api.model_create_multi
     def create(self, vals):
