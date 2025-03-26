@@ -22,8 +22,8 @@ class Prestamos(models.Model):
     image = fields.Binary(string="Imagen", related='equipment_id.image', readonly=True)
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
     color = fields.Integer(string="Color", related='equipment_id.color', readonly=True)
-
-
+        
+    
     @api.depends('loanDate', 'longTerm')
     def _compute_returnDate(self):
         for loan in self:
@@ -85,24 +85,33 @@ class Prestamos(models.Model):
     def action_devolver(self):
         today = fields.Date.today()  
         for loan in self:
-            loan.state = 'devuelto'
-            if not loan.longTerm and loan.returnDate and loan.returnDate < today:
-                loan.state = 'retrasado'
-            if loan.state == 'devuelto':
+            # Si el préstamo ya está devuelto (y no es a largo plazo), se lanza el error
+            if loan.state == 'devuelto' and not loan.longTerm:
                 raise ValidationError("El equipo ya ha sido devuelto.")
+            
+            # Para préstamos a largo plazo se marca como devuelto sin cambiar a retrasado
+            if loan.longTerm:
+                loan.state = 'devuelto'
+            else:
+                # Para préstamos no a largo plazo, se marca como devuelto o retrasado según la fecha de devolución
+                loan.state = 'devuelto'
+                if loan.returnDate and loan.returnDate < today:
+                    loan.state = 'retrasado'
+                    
             loan._update_equipment_state()
-    
+
     def action_cancelar_devolucion(self):
         for loan in self:
             # Verificar si el equipo está prestado en otro préstamo
             other_loans = self.search([('equipment_id', '=', loan.equipment_id.id), ('state', '=', 'prestado')])
             if other_loans:
-                raise ValidationError("El equipo está actualmente prestado en otro préstamo y no se puede cancelar la devolución.")
+                raise ValidationError(f"El equipo {loan.equipment_id.display_name} está actualmente prestado en otro préstamo y no se puede cancelar la devolución.")
             
             if loan.state in ['devuelto', 'retrasado']:
                 loan.state = 'prestado'
                 loan.returnDate = False
                 loan.equipment_id.state = 'prestado'
+
             
     @api.model
     def notification(self):

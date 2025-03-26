@@ -8,14 +8,18 @@
     'website': "https://github.com/VicentCastells6",
 
     'category': 'Customizations',
-    'depends': ['base'],
+    'depends': ['base', 'web'],
 
     "data": [
         "security/ir.model.access.csv",
         "views/equipos.xml",
         "views/prestamos.xml",
     ],
-
+    
+    'assets': {
+        'web.assets_backend': [
+        ],
+    },
 
     'demo': [
         'demo/demo.xml',

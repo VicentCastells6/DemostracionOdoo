@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
   <data>
     <!-- Definición del menú raíz -->
@@ -8,6 +9,22 @@
       <field name="model">equipo.equipo</field>
       <field name="arch" type="xml">
         <list>
+        <header>
+          <button 
+              name="action_dar_baja" 
+              string="Dar de baja" 
+              type="object"
+              class="btn btn-danger"
+              groups="base.group_user"
+          />
+          <button 
+              name="action_dar_alta" 
+              string="Dar de alta" 
+              type="object"
+              class="oe_highlight"
+              groups="base.group_user"
+          />
+        </header>
           <field name="name"/>
           <field name="serialNumber"/>
           <field name="purchaseDate"/>
@@ -41,58 +58,71 @@
       </field>
     </record>
 
-    <record model="ir.ui.view" id="view_equipo_kanban">
-      <field name="name">equipo.kanban</field>
-      <field name="model">equipo.equipo</field>
-      <field name="arch" type="xml">
-        <kanban>
-          <field name="name"/>
-          <field name="serialNumber"/>
-          <field name="purchaseDate"/>
-          <field name="state"/>
-          <field name="employee_id"/>
-          <field name="description"/>
-          <field name="image"/>
-          <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
-          <templates>
-            <t t-name="kanban-card">
-              <div class="oe_kanban_global_click">
-                <div class="oe_kanban_details">
-                  <field name="image" widget="image" class="oe_avatar" nolabel="1" options="{'image_preview': 'image_128'}"/>
-                  <strong>
-                    <field name="name"/>
-                  </strong>
-                  <div>
-                    <field name="serialNumber"/>
-                  </div>
-                  <div>
-                    <field name="purchaseDate"/>
-                  </div>
-                  <div>
-                    <field name="state"/>
-                  </div>
-                  <div>
-                    <field name="employee_id"/>
-                  </div>
-                  <div>
-                  </div>
-                  <div>
-                    <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
-                  </div>
-                </div>
+<record model="ir.ui.view" id="view_equipo_kanban">
+  <field name="name">equipo.kanban</field>
+  <field name="model">equipo.equipo</field>
+  <field name="arch" type="xml">
+    <kanban quick_create="false" options="{'draggable': False}">
+      <field name="name"/>
+      <field name="serialNumber"/>
+      <field name="purchaseDate"/>
+      <field name="state"/>
+      <field name="employee_id"/>
+      <field name="description"/>
+      <field name="image"/>
+      <field name="tags"/>
+      
+      <templates>
+        <t t-name="kanban-box">
+          <div class="oe_kanban_global_click">
+            <div class="o_kanban_image">
+              <field name="image" widget="image" class="oe_avatar" options="{'image_preview': 'image_128'}"/>
+            </div>
+            <div class="o_kanban_details">
+              <strong class="o_kanban_record_title">
+                <field name="name"/>
+              </strong>
+              <div class="o_kanban_tags">
+                <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
               </div>
-            </t>
-          </templates>
-        </kanban>
-      </field>
-    </record>
+              <ul>
+                <li>
+                  <b>Número de Serie:</b> 
+                  <field name="serialNumber"/>
+                </li>
+                <li>
+                  <b>Fecha de Compra:</b> 
+                  <field name="purchaseDate" widget="date"/>
+                </li>
+                <li>
+                  <b>Estado:</b> 
+                  <field name="state"/>
+                </li>
+                <li t-if="record.employee_id.value">
+                  <b>Asignado a:</b> 
+                  <field name="employee_id"/>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </t>
+      </templates>
+    </kanban>
+  </field>
+</record>
+
+
+
+
 
     <record model="ir.actions.act_window" id="action_equipo">
       <field name="name">Equipos</field>
       <field name="res_model">equipo.equipo</field>
-      <field name="view_mode">kanban,list,form</field>
+      <field name="view_mode">list,kanban,form</field>
+      <field name="context">{'kanban_update': True}</field>
     </record>
 
     <menuitem id="menu_equipo" name="Equipos" parent="menu_demo_root" action="action_equipo"/>
+
   </data>
 </odoo>
