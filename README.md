@@ -65,7 +65,7 @@ equipo.tags = modelo de utilidad **creado manualmente** para gestionar las carac
 
 - Acciones: Configura acciones que se ejecutan cuando el usuario interactúa con los datos.
 
-- Datos: Incluye datos de ejemplo que se cargan al instalar el módulo.
+- Search: Incluye filtros de búsqueda.
 
 ## 🗞️ Licencia
 Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
