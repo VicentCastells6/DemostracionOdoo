@@ -11,20 +11,8 @@
       <field name="arch" type="xml">
         <list>
           <header>
-            <button 
-              name="action_devolver" 
-              string="Devolver" 
-              type="object"
-              class="oe_highlight"
-              groups="base.group_user"
-            />
-            <button 
-              name="action_cancelar_devolucion" 
-              string="Cancelar Devolución" 
-              type="object"
-              class="btn btn-warning"
-              groups="base.group_user"
-            />
+            <button name="action_devolver" string="Devolver" type="object" class="oe_highlight" groups="base.group_user" />
+            <button name="action_cancelar_devolucion" string="Cancelar Devolución" type="object" class="btn btn-warning" groups="base.group_user" />
           </header>
           <field name="name" />
           <field name="employee_id" />
@@ -47,10 +35,8 @@
         <form>
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <div>
-              <button name="action_devolver" type="object" string="Devolver"
-                class="oe_highlight btn btn-primary" invisible="state != 'prestado'" />
-              <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución"
-                class="btn btn-warning" invisible="state == 'prestado' or state == 'disponible'" />
+              <button name="action_devolver" type="object" string="Devolver" class="oe_highlight btn btn-primary" invisible="state != 'prestado'" />
+              <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución" class="btn btn-warning" invisible="state == 'prestado' or state == 'disponible'" />
             </div>
             <div style="margin-left: auto;">
               <field name="state" widget="statusbar" statusbar_visible="prestado,devuelto,retrasado" class="w-100" />
@@ -77,9 +63,9 @@
         </form>
       </field>
     </record>
-    
+
     <!-- Vista Search-->
-     <record id="view_prestamo_search" model="ir.ui.view">
+    <record id="view_prestamo_search" model="ir.ui.view">
       <field name="name">equipo.prestamo.search</field>
       <field name="model">equipo.prestamo</field>
       <field name="arch" type="xml">
@@ -101,13 +87,27 @@
       </field>
     </record>
 
+    <!-- Vista calendario para planificación de reservas de equipos -->
+    <record model="ir.ui.view" id="view_prestamo_calendar">
+      <field name="name">prestamo.calendar</field>
+      <field name="model">equipo.prestamo</field>
+      <field name="arch" type="xml">
+        <calendar string="Reservas de Equipos" date_start="loanDate" date_stop="calendar_return_date" color="equipment_id" event_open_popup="true">
+          <field name="name"/>
+          <field name="equipment_id"/>
+          <field name="employee_id"/>
+        </calendar>
+      </field>
+    </record>
+
+
     <!-- Acción para la vista de préstamo -->
     <record model="ir.actions.act_window" id="action_prestamo">
       <field name="name">Préstamos</field>
       <field name="res_model">equipo.prestamo</field>
       <field name="view_id" ref="view_prestamo_list"/>
       <field name="search_view_id" ref="view_prestamo_search"/>
-      <field name="view_mode">list,form,graph</field>
+      <field name="view_mode">list,form,calendar,graph</field>
     </record>
 
     <!-- Menú para los préstamos -->

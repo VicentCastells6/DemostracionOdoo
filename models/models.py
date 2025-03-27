@@ -26,6 +26,8 @@ class Equipos(models.Model):
     # Nuevo campo para integrar con el módulo de inventario
     product_id = fields.Many2one('product.product', string="Producto", copy=False)
 
+
+#! Acciones CRUD
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -69,7 +71,9 @@ class Equipos(models.Model):
             if record.product_id:
                 record.product_id.unlink()
         return super(Equipos, self).unlink()
-    
+#! Acciones CRUD
+
+
     def action_dar_baja(self):
         if self.state == 'prestado':
             raise ValidationError("No se puede dar de baja un equipo que está prestado.")
@@ -82,6 +86,9 @@ class Equipos(models.Model):
             raise ValidationError("No se puede dar de alta un equipo que está prestado.")
         self.state = 'disponible'
 
+
+
+#? Clase auxiliar para etiquetas de características
 class EquipoTag(models.Model):
     _name = 'equipo.tag'
     _description = 'Tag'

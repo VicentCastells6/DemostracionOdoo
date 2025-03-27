@@ -23,7 +23,25 @@ class Prestamos(models.Model):
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
     color = fields.Integer(string="Color", related='equipment_id.color', readonly=True)
     picking_id = fields.Many2one('stock.picking', string="Movimiento de Inventario")
-    
+    calendar_return_date = fields.Date(
+    string="Fecha fin calendario",
+    compute="_compute_calendar_return_date",
+    store=True
+    )
+
+    # longTerm: True -> returnDate: False
+    @api.depends('returnDate', 'loanDate', 'longTerm')
+    def _compute_calendar_return_date(self):
+        for record in self:
+            if record.returnDate:
+                record.calendar_return_date = record.returnDate
+            elif record.longTerm and record.loanDate:
+                # Mostrar como evento de un solo día si es indefinido
+                record.calendar_return_date = record.loanDate
+            else:
+                record.calendar_return_date = record.returnDate or record.loanDate
+
+    # Cambio de stock en inventario al crear o devolver un préstamo
     def _update_stock(self, product, quantity_change):
         """Actualiza el stock disponible en inventario."""
         try:
@@ -37,7 +55,7 @@ class Prestamos(models.Model):
             raise ValidationError(f"Ocurrió un error al actualizar el inventario: {str(e)}")
 
 
-        
+    # returnDate = loanDate + 7 si no es a largo plazo   
     @api.depends('loanDate', 'longTerm')
     def _compute_returnDate(self):
         for loan in self:
@@ -45,7 +63,8 @@ class Prestamos(models.Model):
                 loan.returnDate = loan.loanDate + timedelta(days=7)
             else:
                 loan.returnDate = False
-    
+                
+    # Estado del préstamo
     @api.depends('loanDate', 'returnDate', 'longTerm')
     def _compute_state(self):
         for loan in self:
@@ -59,18 +78,14 @@ class Prestamos(models.Model):
                 loan.state = 'disponible'
         self._update_equipment_state()
 
-    @api.depends('state')
-    def compute_visibility(self):
-        for loan in self:
-            loan.visibility = loan.state not in ['prestado', 'disponible']
 
+    # Actualizar estado del equipo
     def _update_equipment_state(self):
         for loan in self:
             if loan.state in ['devuelto', 'retrasado']:
                 loan.equipment_id.state = 'disponible'
             else:
                 loan.equipment_id.state = 'prestado'
-
 
 
 
@@ -96,6 +111,7 @@ class Prestamos(models.Model):
         return loan
 
 
+
     def write(self, vals):
         for loan in self:
             if 'equipment_id' in vals:
@@ -112,6 +128,8 @@ class Prestamos(models.Model):
 
 
 
+    #* Comportamiento de botones 
+    
     def action_devolver(self):
         today = fields.Date.today()  
         for loan in self:
@@ -152,14 +170,14 @@ class Prestamos(models.Model):
 
 
             
-    @api.model
-    def notification(self):
-        today = fields.Date.today()
-        loans = self.search([('state', '=', 'prestado')])
-        for loan in loans:
-            if not loan.longTerm and loan.returnDate:
-                if loan.returnDate - timedelta(days=2) <= today:
-                    loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está próximo a vencer.")
-                if loan.returnDate < today:
-                    loan.state = 'retrasado'
-                    loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está retrasado.")
+    # @api.model
+    # def notification(self):
+    #     today = fields.Date.today()
+    #     loans = self.search([('state', '=', 'prestado')])
+    #     for loan in loans:
+    #         if not loan.longTerm and loan.returnDate:
+    #             if loan.returnDate - timedelta(days=2) <= today:
+    #                 loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está próximo a vencer.")
+    #             if loan.returnDate < today:
+    #                 loan.state = 'retrasado'
+    #                 loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está retrasado.")
