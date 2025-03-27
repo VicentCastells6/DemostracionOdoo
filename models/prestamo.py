@@ -5,6 +5,7 @@ from odoo.exceptions import ValidationError
 class Prestamos(models.Model):
     _name = 'equipo.prestamo'
     _description = 'Préstamos de equipos'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     name = fields.Char(string="Nombre")
     employee_id = fields.Many2one('res.partner', string="Empleado", required=True)
