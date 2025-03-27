@@ -24,8 +24,20 @@ class Prestamos(models.Model):
     color = fields.Integer(string="Color", related='equipment_id.color', readonly=True)
     picking_id = fields.Many2one('stock.picking', string="Movimiento de Inventario")
     
+    def _update_stock(self, product, quantity_change):
+        """Actualiza el stock disponible en inventario."""
+        try:
+            if not product:
+                raise ValidationError("El equipo no tiene un producto asociado.")
+            location = self.env.ref('stock.stock_location_stock')
+            if not location:
+                raise ValidationError("No se encontró la ubicación de inventario.")
+            self.env['stock.quant']._update_available_quantity(product, location, quantity_change)
+        except Exception as e:
+            raise ValidationError(f"Ocurrió un error al actualizar el inventario: {str(e)}")
+
+
         
-    
     @api.depends('loanDate', 'longTerm')
     def _compute_returnDate(self):
         for loan in self:
@@ -59,16 +71,30 @@ class Prestamos(models.Model):
             else:
                 loan.equipment_id.state = 'prestado'
 
+
+
+
     @api.model
     def create(self, vals):
         equipment = self.env['equipo.equipo'].browse(vals['equipment_id'])
         if equipment.state != 'disponible':
             raise ValidationError("El equipo no está disponible para ser reservado.")
         
+        # Validar producto asociado
+        if not equipment.product_id:
+            raise ValidationError("El equipo no tiene un producto de inventario asociado.")
+        if not product or not product.is_storable:
+            raise ValidationError("El equipo no tiene un producto almacenable asignado.")
+
         loan = super(Prestamos, self).create(vals)
         loan.state = 'prestado'
         loan._update_equipment_state()
+
+        # Restar 1 del stock
+        loan._update_stock(equipment.product_id, -1)
+        
         return loan
+
 
     def write(self, vals):
         for loan in self:
@@ -84,27 +110,33 @@ class Prestamos(models.Model):
         self._update_equipment_state()
         return res
 
+
+
     def action_devolver(self):
         today = fields.Date.today()  
         for loan in self:
-            # Si el préstamo ya está devuelto (y no es a largo plazo), se lanza el error
             if loan.state == 'devuelto' and not loan.longTerm:
                 raise ValidationError("El equipo ya ha sido devuelto.")
-            
-            # Para préstamos a largo plazo se marca como devuelto sin cambiar a retrasado
+            if not product or not product.is_storable:
+                raise ValidationError("El equipo no tiene un producto almacenable asignado.")
+
+            # Estado
             if loan.longTerm:
                 loan.state = 'devuelto'
             else:
-                # Para préstamos no a largo plazo, se marca como devuelto o retrasado según la fecha de devolución
                 loan.state = 'devuelto'
                 if loan.returnDate and loan.returnDate < today:
                     loan.state = 'retrasado'
-                    
+
             loan._update_equipment_state()
+
+            # Sumar 1 al stock si hay producto
+            if loan.equipment_id.product_id:
+                loan._update_stock(loan.equipment_id.product_id, 1)
+
 
     def action_cancelar_devolucion(self):
         for loan in self:
-            # Verificar si el equipo está prestado en otro préstamo
             other_loans = self.search([('equipment_id', '=', loan.equipment_id.id), ('state', '=', 'prestado')])
             if other_loans:
                 raise ValidationError(f"El equipo {loan.equipment_id.display_name} está actualmente prestado en otro préstamo y no se puede cancelar la devolución.")
@@ -113,6 +145,11 @@ class Prestamos(models.Model):
                 loan.state = 'prestado'
                 loan.returnDate = False
                 loan.equipment_id.state = 'prestado'
+
+                # Volver a restar 1 al stock
+                if loan.equipment_id.product_id:
+                    loan._update_stock(loan.equipment_id.product_id, -1)
+
 
             
     @api.model
