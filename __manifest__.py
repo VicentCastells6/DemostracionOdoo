@@ -8,7 +8,7 @@
     'website': "https://github.com/VicentCastells6",
 
     'category': 'Customizations',
-    'depends': ['base', 'web', 'stock'],
+    'depends': ['base', 'web', 'stock', 'product'],
 
     "data": [
         "security/ir.model.access.csv",

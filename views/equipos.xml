@@ -37,26 +37,28 @@
       </field>
     </record>
 
-    <record model="ir.ui.view" id="view_equipo_form">
-      <field name="name">equipo.form</field>
-      <field name="model">equipo.equipo</field>
-      <field name="arch" type="xml">
-        <form>
-          <sheet>
-            <group>
-              <field name="name"/>
-              <field name="serialNumber"/>
-              <field name="purchaseDate"/>
-              <field name="state"/>
-              <field name="employee_id"/>
-              <field name="description"/>
-              <field name="image" widget="image"/>
-              <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
-            </group>
-          </sheet>
-        </form>
-      </field>
-    </record>
+<record model="ir.ui.view" id="view_equipo_form">
+  <field name="name">equipo.form</field>
+  <field name="model">equipo.equipo</field>
+  <field name="arch" type="xml">
+    <form>
+      <sheet>
+        <group>
+          <field name="name"/>
+          <field name="serialNumber"/>
+          <field name="purchaseDate"/>
+          <field name="state"/>
+          <field name="employee_id"/>
+          <field name="description"/>
+          <field name="image" widget="image"/>
+          <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
+          <!-- Nuevo campo para el producto -->
+          <field name="product_id"/>
+        </group>
+      </sheet>
+    </form>
+  </field>
+</record>
 
 <record model="ir.ui.view" id="view_equipo_kanban">
   <field name="name">equipo.kanban</field>

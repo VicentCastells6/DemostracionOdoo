@@ -23,26 +23,52 @@ class Equipos(models.Model):
     tags = fields.Many2many('equipo.tag', string="Características")
     color = fields.Integer(string="Color")
     picking_id = fields.Many2one('stock.picking', string="Movimiento de Inventario")
+    # Nuevo campo para integrar con el módulo de inventario
+    product_id = fields.Many2one('product.product', string="Producto", copy=False)
 
-    
     @api.model_create_multi
-    def create(self, vals):
-        # Validación para asegurarse de que no se repita el serialNumber
-        if 'serialNumber' in vals:
-            existing_equipment = self.search([('serialNumber', '=', vals['serialNumber'])], limit=1)
-            if existing_equipment:
-                raise ValidationError("Ya existe un equipo con ese número de serie.")
-        
-        return super(Equipos, self).create(vals)
+    def create(self, vals_list):
+        for vals in vals_list:
+            # Validación para que no se repita el número de serie
+            if 'serialNumber' in vals:
+                existing_equipment = self.search([('serialNumber', '=', vals['serialNumber'])], limit=1)
+                if existing_equipment:
+                    raise ValidationError("Ya existe un equipo con ese número de serie.")
+            # Si no se especifica un producto, se crea automáticamente uno
+            if not vals.get('product_id'):
+                product_vals = {
+                    'name': vals.get('name'),
+                    'default_code': vals.get('serialNumber'),
+                    'type': 'consu',
+                    # Activa el tracking de stock; puedes elegir 'lot' o 'serial' según tus necesidades
+                    'tracking': 'serial',
+                    'is_storable': True,
+                    'sale_ok': False,
+                    'purchase_ok': False,
+                }
+                product = self.env['product.product'].create(product_vals)
+                vals['product_id'] = product.id
+        return super(Equipos, self).create(vals_list)
 
     def write(self, vals):
-    # Validación para asegurarse de que no se repita el serialNumber al actualizar
-        if 'serialNumber' in vals:
-            existing_equipment = self.search([('serialNumber', '=', vals['serialNumber'])], limit=1)
-            if existing_equipment and existing_equipment.id != self.id:
-                raise ValidationError("Ya existe un equipo con ese número de serie.")
-
-        return super(Equipos, self).write(vals)
+        # Si se actualiza el nombre o el número de serie, podrías sincronizar el producto asociado
+        res = super(Equipos, self).write(vals)
+        for record in self:
+            product_vals = {}
+            if 'name' in vals:
+                product_vals['name'] = record.name
+            if 'serialNumber' in vals:
+                product_vals['default_code'] = record.serialNumber
+            if product_vals and record.product_id:
+                record.product_id.write(product_vals)
+        return res
+    
+    def unlink(self):
+        # Si se borra un equipo, también se borra el producto asociado
+        for record in self:
+            if record.product_id:
+                record.product_id.unlink()
+        return super(Equipos, self).unlink()
     
     def action_dar_baja(self):
         if self.state == 'prestado':
@@ -71,6 +97,3 @@ class EquipoTag(models.Model):
     
     def _get_default_color(self):
         return random.randint(1, 11)
-
-
-
