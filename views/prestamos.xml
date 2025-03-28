@@ -35,12 +35,28 @@
         <form>
           <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <div>
+              <!-- Botón: Solicitar Aprobación -->
+              <button name="action_solicitar_aprobacion" type="object" string="Solicitar Aprobación" class="btn btn-primary" invisible="state != 'borrador'" />
+              <div style="display: flex; gap: 10px;">
+              <!-- Botón: Aprobar -->
+              <button name="action_aprobar" type="object" string="Aprobar" class="btn btn-success" invisible="state != 'espera_aprobacion' and state != 'rechazado'" groups="stock.group_stock_manager" />
+              <!-- Botón: Rechazar -->
+              <button name="action_rechazar" type="object" string="Rechazar" class="btn btn-danger" invisible="state != 'espera_aprobacion' and state != 'aprobado'" groups="stock.group_stock_manager"/>
+
+              <button name="action_prestar" type="object" string="Prestar" class="btn btn-success" invisible="state != 'aprobado'" />
+
+              <!-- Botón: Devolver -->
               <button name="action_devolver" type="object" string="Devolver" class="oe_highlight btn btn-primary" invisible="state != 'prestado'" />
-              <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución" class="btn btn-warning" invisible="state == 'prestado' or state == 'disponible'" />
+
+              <!-- Botón: Cancelar Devolución -->
+              <button name="action_cancelar_devolucion" type="object" string="Cancelar Devolución" class="btn btn-warning" invisible="state != 'devuelto' and state != 'retrasado'" />
             </div>
+                        </div>
             <div style="margin-left: auto;">
-              <field name="state" widget="statusbar" statusbar_visible="prestado,devuelto,retrasado" class="w-100" />
+              <field name="state" widget="statusbar" statusbar_visible="borrador,espera_aprobacion,aprobado,prestado,devuelto,retrasado,rechazado" class="w-100"/>
+
             </div>
+
           </div>
           <sheet>
             <div class="oe_title">
@@ -60,11 +76,11 @@
               <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}" />
             </group>
           </sheet>
-              <chatter>
-                <field name="message_follower_ids"/>
-                <field name="activity_ids"/>
-                <field name="message_ids"/>
-              </chatter>
+          <chatter>
+            <field name="message_follower_ids"/>
+            <field name="activity_ids"/>
+            <field name="message_ids"/>
+          </chatter>
         </form>
       </field>
     </record>

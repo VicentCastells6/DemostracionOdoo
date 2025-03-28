@@ -14,11 +14,14 @@ class Prestamos(models.Model):
     loanDate = fields.Date(string="Fecha de préstamo", required=True)
     returnDate = fields.Date(string="Fecha de devolución", compute='_compute_returnDate', store=True)
     state = fields.Selection([
-        ('disponible', 'Disponible'),
+        ('borrador', 'Borrador'),
+        ('espera_aprobacion', 'Espera'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado'),
         ('prestado', 'Prestado'),
         ('devuelto', 'Devuelto'),
         ('retrasado', 'Retrasado')
-    ], string="Estado", default='disponible')
+    ], string="Estado", default='borrador')
     description = fields.Text(string="Descripción")
     image = fields.Binary(string="Imagen", related='equipment_id.image', readonly=True)
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
@@ -29,6 +32,9 @@ class Prestamos(models.Model):
     compute="_compute_calendar_return_date",
     store=True
     )
+    approved_by = fields.Many2one('res.users', string="Aprobado por", readonly=True)
+    approved_date = fields.Datetime(string="Fecha de aprobación", readonly=True)
+
 
     # longTerm: True -> returnDate: False
     @api.depends('returnDate', 'loanDate', 'longTerm')
@@ -76,40 +82,38 @@ class Prestamos(models.Model):
             elif loan.returnDate and loan.returnDate >= fields.Date.today() and loan.state == 'prestado':
                 loan.state = 'prestado'
             elif not loan.returnDate and not loan.loanDate:
-                loan.state = 'disponible'
+                loan.state = 'borrador'
+                # TODO añadir los demás estados
         self._update_equipment_state()
 
 
     # Actualizar estado del equipo
     def _update_equipment_state(self):
         for loan in self:
-            if loan.state in ['devuelto', 'retrasado']:
-                loan.equipment_id.state = 'disponible'
-            else:
+            if loan.state in ['prestado', 'aprobado']:
                 loan.equipment_id.state = 'prestado'
+            else:
+                loan.equipment_id.state = 'disponible'
 
 
 
     @api.model
     def create(self, vals):
         equipment = self.env['equipo.equipo'].browse(vals['equipment_id'])
+
         if equipment.state != 'disponible':
             raise ValidationError("El equipo no está disponible para ser reservado.")
-        
-        # Validar producto asociado
-        if not equipment.product_id:
-            raise ValidationError("El equipo no tiene un producto de inventario asociado.")
+
+        product = equipment.product_id
         if not product or not product.is_storable:
             raise ValidationError("El equipo no tiene un producto almacenable asignado.")
 
         loan = super(Prestamos, self).create(vals)
-        loan.state = 'prestado'
-        loan._update_equipment_state()
-
-        # Restar 1 del stock
-        loan._update_stock(equipment.product_id, -1)
+         loan._update_stock(loan.equipment_id.product_id, 1)
         
+        loan.message_post(body="Préstamo creado y pendiente de aprobación.")
         return loan
+
 
 
 
@@ -117,27 +121,74 @@ class Prestamos(models.Model):
         for loan in self:
             if 'equipment_id' in vals:
                 equipment = self.env['equipo.equipo'].browse(vals['equipment_id'])
-                if equipment.exists() and equipment.state != 'disponible':
+                if equipment.exists() and (equipment.state != 'disponible' or equipment.state != 'aprobado'):
                     raise ValidationError("El equipo no está disponible para ser reservado.")
-            
-            if 'state' in vals and vals['state'] == 'disponible':
-                vals['state'] = 'prestado'
-        
+
         res = super(Prestamos, self).write(vals)
         self._update_equipment_state()
         return res
 
 
-
+        #TODO arreglar los states
     #* Comportamiento de botones 
-    
+    def action_solicitar_aprobacion(self):
+        for loan in self:
+            if loan.state != 'borrador':
+                raise ValidationError("Solo los préstamos en borrador pueden ser enviados para aprobación.")
+            loan.state = 'espera_aprobacion'
+            loan.message_post(body="Solicitud de préstamo enviada para aprobación.")
+
+
+
+    def action_aprobar(self):
+        if not self.env.user.has_group('stock.group_stock_manager'):
+            raise ValidationError("No tienes permisos para aprobar préstamos.")
+            
+        for loan in self:
+            if loan.state not in ['espera_aprobacion', 'rechazado']:
+                raise ValidationError("Solo se pueden aprobar solicitudes en estado 'Espera'.")
+            loan.state = 'aprobado'
+            loan.approved_by = self.env.user
+            loan.approved_date = fields.Datetime.now()
+            loan.message_post(body="Solicitud de préstamo aprobada. Aún no se ha prestado el equipo.")
+
+
+    def action_rechazar(self):
+        if not self.env.user.has_group('stock.group_stock_manager'):
+            raise ValidationError("No tienes permisos para rechazar préstamos.")
+            
+        for loan in self:
+            if loan.state not in ['espera_aprobacion', 'aprobado']:
+                raise ValidationError("Solo se pueden rechazar solicitudes en estado 'Espera' o 'Aprobado'.")
+            loan.state = 'rechazado'
+            loan.message_post(body="Solicitud de préstamo rechazada.")
+
+
+    def action_prestar(self):
+        for loan in self:
+            if loan.state != 'aprobado':
+                raise ValidationError("Solo se pueden prestar solicitudes aprobadas.")
+
+            product = loan.equipment_id.product_id
+            if not product or not product.is_storable:
+                raise ValidationError("El equipo no tiene un producto almacenable asignado.")
+
+            loan.state = 'prestado'
+            loan._update_equipment_state()
+            loan._update_stock(product, -1)
+            loan.message_post(body="El préstamo ha sido procesado y el equipo fue entregado.")
+
+
     def action_devolver(self):
         today = fields.Date.today()  
         for loan in self:
             if loan.state == 'devuelto' and not loan.longTerm:
                 raise ValidationError("El equipo ya ha sido devuelto.")
+            
+            product = loan.equipment_id.product_id
             if not product or not product.is_storable:
                 raise ValidationError("El equipo no tiene un producto almacenable asignado.")
+
 
             # Estado
             if loan.longTerm:
@@ -152,6 +203,7 @@ class Prestamos(models.Model):
             # Sumar 1 al stock si hay producto
             if loan.equipment_id.product_id:
                 loan._update_stock(loan.equipment_id.product_id, 1)
+            loan.message_post(body="Equipo devuelto.")
 
 
     def action_cancelar_devolucion(self):
