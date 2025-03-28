@@ -50,7 +50,14 @@ class Equipos(models.Model):
                 }
                 product = self.env['product.product'].create(product_vals)
                 vals['product_id'] = product.id
-        return super(Equipos, self).create(vals_list)
+        records = super(Equipos, self).create(vals_list)
+        # Añadir una unidad al stock de inventario
+        for record in records:
+            if record.product_id:
+                self.env['stock.quant']._update_available_quantity(
+                    record.product_id, self.env.ref('stock.stock_location_stock'), 1
+                )
+        return records
 
     def write(self, vals):
         # Si se actualiza el nombre o el número de serie, podrías sincronizar el producto asociado
@@ -63,6 +70,7 @@ class Equipos(models.Model):
                 product_vals['default_code'] = record.serialNumber
             if product_vals and record.product_id:
                 record.product_id.write(product_vals)
+
         return res
     
     def unlink(self):

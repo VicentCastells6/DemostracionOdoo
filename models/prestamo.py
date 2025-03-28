@@ -83,7 +83,6 @@ class Prestamos(models.Model):
                 loan.state = 'prestado'
             elif not loan.returnDate and not loan.loanDate:
                 loan.state = 'borrador'
-                # TODO añadir los demás estados
         self._update_equipment_state()
 
 
@@ -109,7 +108,7 @@ class Prestamos(models.Model):
             raise ValidationError("El equipo no tiene un producto almacenable asignado.")
 
         loan = super(Prestamos, self).create(vals)
-         loan._update_stock(loan.equipment_id.product_id, 1)
+
         
         loan.message_post(body="Préstamo creado y pendiente de aprobación.")
         return loan
@@ -129,7 +128,6 @@ class Prestamos(models.Model):
         return res
 
 
-        #TODO arreglar los states
     #* Comportamiento de botones 
     def action_solicitar_aprobacion(self):
         for loan in self:

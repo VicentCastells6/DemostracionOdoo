@@ -100,6 +100,7 @@
           <filter string="Prestados" name="filter_prestados" domain="[('state','=','prestado')]"/>
           <filter string="Devueltos" name="filter_devueltos" domain="[('state','=','devuelto')]"/>
           <filter string="Retrasados" name="filter_retrasados" domain="[('state','=','retrasado')]"/>
+          <filter string="Rechazados" name="filter_rechazados" domain="[('state', '=', 'rechazado')]"/>
           <filter string="Equipos" name="group_by_equipos" context="{'group_by': 'equipment_id'}"/>
           <filter string="Estado" name="group_by_state" context="{'group_by': 'state'}"/>
           <filter string="Largo Plazo" name="group_by_LongTerm" context="{'group_by': 'longTerm'}"/>

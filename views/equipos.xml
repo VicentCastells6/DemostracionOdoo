@@ -54,6 +54,7 @@
               <field name="employee_id"/>
               <field name="description"/>
               <field name="image" widget="image"/>
+              <field name="warranty" widget="image"/>
               <field name="tags" widget="many2many_tags" options="{'color_field': 'color'}"/>
               <!-- Nuevo campo para el producto -->
               <field name="product_id"/>
