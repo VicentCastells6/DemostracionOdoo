@@ -11,30 +11,11 @@ Este módulo de Odoo está diseñado para **ser una prueba de programación** he
   
 ## ❗ Problemas encontrados ❗
 - Ocultar los botones siguendo una condición de estado EN LA VISTA LIST
-- Añadir el chat de comunicacion al lateral de los form
+- Añadir el chat de comunicacion al lateral de los form ☑️
+- Implementar un modulo externo a mi modulo ☑️
 - Generar notificaciones para avisar usuario de su próxima finalizacion de préstamo
   
-## Requisitos
 
-- **Odoo 18**: Este módulo está diseñado para funcionar con Odoo 18.
-- **Acceso a un Servidor de Odoo**: Necesitarás un servidor de Odoo en funcionamiento para instalar y probar el módulo.
-  
-## 🧰 Instalación
-
-Sigue estos pasos para instalar el módulo en tu instancia de Odoo:
-
-1. **Clonar el Repositorio**:
-   ```bash
-   git clone https://github.com/TuUsuario/ModuloDemostracionOdoo.git
-Colocar el Módulo en la Carpeta de Addons: Copia el módulo a la carpeta de addons de tu instalación de Odoo. Si estás utilizando una instalación local, la ruta típica suele ser:
-
-bash
-Copiar
-Editar
-cp -r ModuloDemostracionOdoo /ruta/a/tu/odoo/addons/
-Actualizar la Lista de Módulos en Odoo: Entra en Odoo y ve a Apps > Update Apps List. Luego, actualiza la lista de módulos para que Odoo reconozca el módulo recién agregado.
-
-Instalar el Módulo: Una vez que la lista de aplicaciones esté actualizada, busca el módulo "Modulo de Demostración y Pruebas" en la interfaz de Odoo y haz clic en Instalar.
 
 ## 🖱️ Uso
 Este módulo está planteado para ser una versión simple de prestamos de equipos internos, como teléfonos de empresa, portátiles, etc... Algunas de las funcionalidades de prueba que puedes probar son:
@@ -44,6 +25,8 @@ Este módulo está planteado para ser una versión simple de prestamos de equipo
 - Listas: Visualiza datos en una vista de lista y edita registros desde ahi.
 
 - Kanban: Observa cómo los datos pueden organizarse en una vista de kanban.
+
+- Inventario: el modulo de inventario para hacer seguimiento de stock 
 
 
 # 🏗️ Estructura del Módulo
@@ -67,7 +50,27 @@ equipo.tags = modelo de utilidad **creado manualmente** para gestionar las carac
 
 - Search: Incluye filtros de búsqueda.
 
-## 🗞️ Licencia
-Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más detalles.
+- Calendar: Para que los empleado puedan gestionar sus prestamos de una forma más visual
 
+## Requisitos
+
+- **Odoo 18**: Este módulo está diseñado para funcionar con Odoo 18.
+- **Acceso a un Servidor de Odoo**: Necesitarás un servidor de Odoo en funcionamiento para instalar y probar el módulo.
+  
+## 🧰 Instalación
+
+Sigue estos pasos para instalar el módulo en tu instancia de Odoo:
+
+1. **Clonar el Repositorio**:
+   ```bash
+   git clone https://github.com/TuUsuario/ModuloDemostracionOdoo.git
+Colocar el Módulo en la Carpeta de Addons: Copia el módulo a la carpeta de addons de tu instalación de Odoo. Si estás utilizando una instalación local, la ruta típica suele ser:
+
+bash
+Copiar
+Editar
+cp -r ModuloDemostracionOdoo /ruta/a/tu/odoo/addons/
+Actualizar la Lista de Módulos en Odoo: Entra en Odoo y ve a Apps > Update Apps List. Luego, actualiza la lista de módulos para que Odoo reconozca el módulo recién agregado.
+
+Instalar el Módulo: Una vez que la lista de aplicaciones esté actualizada, busca el módulo "Modulo de Demostración y Pruebas" en la interfaz de Odoo y haz clic en Instalar.
 
