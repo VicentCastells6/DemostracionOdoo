@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <data>
+    <template id="vista_prestamos_template" name="Vista de Préstamos">
+  <t t-call="website.layout">
+    <div class="container">
+      <h1 class="my-4">📋 Lista de Préstamos de Equipos</h1>
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Empleado</th>
+            <th>Equipo</th>
+            <th>Fecha Préstamo</th>
+            <th>Fecha Devolución</th>
+            <th>Estado</th>
+            <th>Descripción</th>
+          </tr>
+        </thead>
+        <tbody>
+          <t t-foreach="prestamos" t-as="p">
+            <tr>
+              <td><t t-esc="p.id"/></td>
+              <td><t t-esc="p.name"/></td>
+              <td><t t-esc="p.employee_id.name"/></td>
+              <td><t t-esc="p.equipment_id.name"/></td>
+              <td><t t-esc="p.loanDate"/></td>
+              <td><t t-esc="p.returnDate or ''"/></td>
+              <td><t t-esc="p.state"/></td>
+              <td><t t-esc="p.description or ''"/></td>
+            </tr>
+          </t>
+        </tbody>
+      </table>
+    </div>
+  </t>
+</template>
+        
+    
+    </data>
+    
+
+</odoo>

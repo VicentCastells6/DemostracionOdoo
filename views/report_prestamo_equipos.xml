@@ -67,7 +67,12 @@
                                             <t t-esc="doc.loanDate"/>
                                         </td>
                                         <td>
-                                            <t t-esc="doc.returnDate"/>
+                                            <t t-if="doc.returnDate">
+                                                <t t-esc="doc.returnDate"/>
+                                            </t>
+                                            <t t-else="">
+                                                Préstamo indefinido
+                                            </t>
                                         </td>
                                     </tr>
                                 </t>
@@ -83,8 +88,8 @@
             <field name="name">Reporte de Préstamo de Equipos</field>
             <field name="model">equipo.prestamo</field>
             <field name="report_type">qweb-pdf</field>
-            <field name="report_name">Demostracion.report_prestamo_equipos</field>
-            <field name="binding_model_id" ref="Demostracion.model_equipo_prestamo"/>
+            <field name="report_name">demostracionodoo.report_prestamo_equipos</field>
+            <field name="binding_model_id" ref="demostracionodoo.model_equipo_prestamo"/>
             <field name="binding_type">report</field>
         </record>
     </data>

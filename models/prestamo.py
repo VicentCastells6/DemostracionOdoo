@@ -21,7 +21,7 @@ class Prestamos(models.Model):
         ('prestado', 'Prestado'),
         ('devuelto', 'Devuelto'),
         ('retrasado', 'Retrasado')
-    ], string="Estado", default='borrador')
+    ], string="Estado", default='borrador', )
     description = fields.Text(string="Descripción")
     image = fields.Binary(string="Imagen", related='equipment_id.image', readonly=True)
     tags = fields.Many2many('equipo.tag', string="Características", related='equipment_id.tags', readonly=True)
@@ -34,6 +34,8 @@ class Prestamos(models.Model):
     )
     approved_by = fields.Many2one('res.users', string="Aprobado por", readonly=True)
     approved_date = fields.Datetime(string="Fecha de aprobación", readonly=True)
+    notified = fields.Boolean(string="Notificado", default=False)
+
 
 
     # longTerm: True -> returnDate: False
@@ -221,14 +223,31 @@ class Prestamos(models.Model):
 
 
             
-    # @api.model
-    # def notification(self):
-    #     today = fields.Date.today()
-    #     loans = self.search([('state', '=', 'prestado')])
-    #     for loan in loans:
-    #         if not loan.longTerm and loan.returnDate:
-    #             if loan.returnDate - timedelta(days=2) <= today:
-    #                 loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está próximo a vencer.")
-    #             if loan.returnDate < today:
-    #                 loan.state = 'retrasado'
-    #                 loan.employee_id.message_post(body=f"El préstamo del equipo {loan.equipment_id.name} está retrasado.")
+    @api.model
+    def notification(self):
+        today = fields.Date.today()
+        loans = self.search([
+            ('state', '=', 'prestado'),
+            ('longTerm', '=', False),
+            ('returnDate', '!=', False)
+        ])
+        
+        for loan in loans:
+            user = loan.employee_id.user_id
+            if not user:
+                continue  
+
+            if loan.returnDate - timedelta(days=2) <= today and not loan.notified:
+                loan.message_post(
+                    body=f"📅 <b>Préstamo próximo a vencer:</b> El equipo <i>{loan.equipment_id.name}</i> vence el {loan.returnDate}.",
+                    message_type='comment',
+                )
+                loan.notified = True
+
+            if loan.returnDate < today and loan.state != 'retrasado':
+                loan.state = 'retrasado'
+                loan.message_post(
+                    body=f"⚠️ <b>Préstamo retrasado:</b> El equipo <i>{loan.equipment_id.name}</i> tenía fecha de devolución el {loan.returnDate}.",
+                    message_type='comment',
+                )
+
